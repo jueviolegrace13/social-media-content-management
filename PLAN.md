@@ -2,7 +2,8 @@
 
 This is the base plan: what we're building, the order we build it in, and where each phase stands.
 Each phase has its own file under [`docs/plan/`](docs/plan/) that holds its tasks, acceptance criteria and change log.
-Architecture decisions live in [`docs/decisions/`](docs/decisions/).
+Architecture decisions live in [`docs/decisions/`](docs/decisions/). Reference docs: [requirements](docs/requirements.md),
+[Meta Graph API findings](docs/meta-graph-api.md), [domain model](docs/domain-model.md), [Open Play integration](docs/integration-open-play.md).
 
 **How to use this plan**
 - This file stays short. Detail and changes go in the phase file, not here.
@@ -36,12 +37,18 @@ No AI features in the first release. The design keeps room for them later.
 | Native composer, not an iframe | Open Play builds its own posting screens and calls the API server to server | [ADR-0002](docs/decisions/0002-native-composer-not-iframe.md) |
 | Content is assembled by the source app | Open Play owns open play data and templates; the platform owns publishing | [ADR-0003](docs/decisions/0003-source-app-assembles-content.md) |
 | Same stack as Open Play | Vue 3 + Vite + TS, Hono on Vercel, Neon Postgres + Drizzle | [ADR-0004](docs/decisions/0004-tech-stack.md) |
+| Jobs on free hosting | Postgres job table, daily cron, "post now" runs inline | [ADR-0005](docs/decisions/0005-background-jobs.md) |
+| Media storage | Cloudflare R2 (free egress, public URLs for Meta) | [ADR-0006](docs/decisions/0006-media-storage.md) |
+| App-to-app auth | HMAC-signed requests and webhooks | [ADR-0007](docs/decisions/0007-service-auth.md) |
+| Token encryption | AES-256-GCM, versioned key ring | [ADR-0008](docs/decisions/0008-secret-encryption.md) |
+| Super admins | Separate per app, TOTP required | [ADR-0009](docs/decisions/0009-super-admin.md) |
+| Idempotency and retries | Idempotency keys, error classes, no double publish | [ADR-0010](docs/decisions/0010-idempotency-and-retries.md) |
 
 ### Meta constraints that shape the plan
 
 - Posting to **a Page we manage ourselves** works while the Meta app is in development mode, so phases 1 to 4 don't wait on App Review.
 - Posting to **other people's Pages** (paid tier) needs Facebook Login, `pages_manage_posts` with Advanced Access, App Review and business verification. Start verification early; it runs in parallel.
-- **Tagging other Pages** in a post through the API is restricted. Phase 0 confirms what's allowed; the fallback is the club's name and Page link in the caption.
+- **Tagging other Pages** needs the Page Mentioning feature, which needs App Review and business verification. Without it, tags are silently stripped. Until then, posts use the club's name and Page link in the caption ([findings](docs/meta-graph-api.md)).
 - **Instagram** only publishes from Business/Creator accounts linked to a Page, needs an image or video on every post, fetches media from a public URL, and caps publishing (about 50 posts per 24 hours).
 - Meta charges nothing for the API, App Review or verification.
 
@@ -49,7 +56,7 @@ No AI features in the first release. The design keeps room for them later.
 
 | | Phase | Outcome | Repo(s) |
 | --- | --- | --- | --- |
-| [ ] | [0. Spec and architecture](docs/plan/phase-0-spec-and-architecture.md) | Requirements, Meta findings, remaining decisions recorded | social |
+| [ ] | [0. Spec and architecture](docs/plan/phase-0-spec-and-architecture.md) | Requirements, Meta findings, remaining decisions recorded (in review) | social |
 | [ ] | [1. Foundation](docs/plan/phase-1-foundation.md) | App skeleton, tenants, client API keys, super admin, encrypted secrets | social |
 | [ ] | [2. Publishing engine + dedicated Page](docs/plan/phase-2-publishing-engine.md) | Publish now or scheduled to a Facebook Page, with retries and history | social |
 | [ ] | [3. Daily "Today's Open Plays"](docs/plan/phase-3-daily-open-plays.md) | Open Play posts a daily roundup at 2:00 PM PH time | open-play, social |
