@@ -1,6 +1,6 @@
 # Domain model and first schema draft
 
-Phase 0 draft, 2026-11-24. Drizzle/Postgres. Every table except `admin_users`, `api_clients` and `audit_log` carries `tenant_id`,
+Phase 0 draft, 2026-11-24. Drizzle/Postgres. Every table that holds a tenant's data carries `tenant_id` (platform tables such as `admin_users`, `api_clients`, `rate_limits` and the request bookkeeping tables don't; `audit_log` has a nullable one),
 and every query on those tables goes through a tenant-scoped helper. IDs are UUIDs; times are `timestamptz` in UTC.
 
 ## Entities
@@ -42,7 +42,7 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | network | enum `facebook_page` (later `instagram_business`) | |
 | external_id | text | Meta Page ID; unique with `network` + `tenant_id` |
 | name, picture_url | text | from Meta, refreshed on health check |
-| token_ciphertext, token_iv, token_tag | bytea | ADR-0008 |
+| token_ciphertext, token_iv, token_tag | text (base64) | ADR-0008; base64 text reads the same through Neon HTTP and PGlite |
 | token_key_version | smallint | |
 | status | enum `connected`, `reconnect_needed`, `disconnected` | |
 | last_checked_at, last_error | timestamptz, text | |
@@ -100,7 +100,8 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 `http_status`, `meta_error_code`, `meta_error_subcode`, `message` (tokens redacted).
 
 ### api_clients and api_client_tenants
-`api_clients`: `id`, `name`, `secret_ciphertext/iv/tag/key_version`, `webhook_url`, `webhook_secret_*`, `scopes` (text[]), `status`, `created_at`, `last_used_at`.
+`api_clients`: `id`, `name` (unique), `secret_ciphertext/iv/tag/key_version`, `webhook_url`, `scopes` (text[]), `status` (`active`, `revoked`), `created_at`, `rotated_at`, `revoked_at`, `last_used_at`.
+`webhook_secret_*` is added in Phase 2 with the first webhook.
 `api_client_tenants`: (`client_id`, `tenant_id`) primary key.
 
 ### webhook_deliveries
@@ -113,8 +114,12 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 (`client_id`, `nonce`) primary key, `created_at` (purge after 10 minutes).
 
 ### admin_users and audit_log
-`admin_users`: `id`, `email`, `password_hash` (scrypt), `totp_secret_*` (encrypted), `created_at`, `last_sign_in_at`.
+`admin_users`: `id`, `email`, `password_hash` (scrypt), `totp_*` (encrypted), `totp_last_step` (refuses a reused code), `created_at`, `last_sign_in_at`.
+`admin_sessions`: `token_hash` pk (SHA-256 of the cookie token), `admin_id`, `created_at`, `expires_at` (12 hours). Server-side, so sign-out and revocation take effect at once.
 `audit_log`: `id`, `actor_type` (`admin`, `client`, `system`), `actor_id`, `tenant_id` null, `action`, `target_type`, `target_id`, `details` jsonb, `ip`, `created_at`.
+
+### rate_limits
+`key` pk (`<rule>:<subject>`), `window_start`, `count`. Fixed-window counters in Postgres, shared by every serverless instance (as Open Play does).
 
 ## Later phases (not in the first migration)
 

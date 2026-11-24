@@ -64,11 +64,25 @@ in the first App Review submission.
 - Business verification for Advanced Access and Page Mentioning.
 - These need the app to be deployed with a public URL, so the submission happens after Phase 2 is live.
 
+## Our Meta setup
+
+As of 2026-11-24. The App Secret is never stored in this repo; it goes in the deployment's environment variables only.
+
+| Item | Value |
+| --- | --- |
+| Meta app | "Content Management", App ID `1805184584083738` |
+| Use case | "Manage everything on your Page" |
+| Mode | Development |
+| Permissions (ready for testing) | `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` |
+| Dedicated Facebook Page | Page ID `61596641620772` ([facebook.com/profile.php?id=61596641620772](https://www.facebook.com/profile.php?id=61596641620772)) |
+| Business portfolio | "404 Open Play" (name for now) |
+| Business verification | Deferred to [Phase 5](plan/phase-5-paid-club-pages.md): needs a registered business first |
+
 ## Owner steps (rendee)
 
-- [ ] Create the Meta app (type: Business) under a Meta Business account
-- [ ] Create the dedicated Facebook Page and make sure your Facebook account is its admin
-- [ ] Start business verification in Meta Business settings (needs business documents; can take days)
+- [x] Create the Meta app (type: Business) under a Meta Business account
+- [x] Create the dedicated Facebook Page and make sure your Facebook account is its admin
+- [ ] Register the business and complete business verification in Meta Business settings (deferred to Phase 5)
 
 ## Sources
 

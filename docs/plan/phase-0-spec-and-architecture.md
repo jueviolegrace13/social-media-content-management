@@ -1,6 +1,6 @@
 # Phase 0: Spec and architecture
 
-**Status:** In progress. Docs drafted 2026-11-24, waiting on rendee's review and the owner steps
+**Status:** Complete (2026-11-24)
 
 ## Goal
 
@@ -24,8 +24,7 @@ Pin down requirements, confirm what Meta allows, and record the decisions the la
 - [x] Confirm whether a Page post can @mention another Page through the API, and the required feature/permission; define the fallback
 - [x] Page token lifetime: long-lived user token to Page token flow, expiry and refresh behavior
 - [x] Rate limits and publishing limits for Pages and Instagram
-- [ ] Business verification checklist; start it (owner: rendee)
-- [ ] Create the Meta app and the dedicated Facebook Page (owner: rendee)
+- [x] Create the Meta app and the dedicated Facebook Page (owner: rendee)
 
 ### Decisions (one ADR each in `docs/decisions/`)
 - [x] Background jobs: one daily Vercel Hobby cron (2:00 PM PH) drains a Postgres job table; design it so a more frequent trigger can be added later without changes (see [Later: Precise scheduling](later-precise-scheduling.md))
@@ -48,7 +47,7 @@ Pin down requirements, confirm what Meta allows, and record the decisions the la
 
 ## Depends on
 
-Nothing. The Meta app, dedicated Page and business verification are owner steps that can run alongside.
+Nothing. The Meta app and dedicated Page are owner steps that ran alongside.
 
 ## Change log
 
@@ -58,3 +57,5 @@ Nothing. The Meta app, dedicated Page and business verification are owner steps 
 - 2026-11-24: Drafted [requirements](../requirements.md), [Meta findings](../meta-graph-api.md), [domain model](../domain-model.md),
   [Open Play integration](../integration-open-play.md) and ADRs 0005 to 0010. Finding: Page tagging needs App Review + business
   verification, so phases 3 and 4 use the club name and Page link in captions until then.
+- 2026-11-24: rendee has no registered business yet, so business verification moves to [Phase 5](phase-5-paid-club-pages.md).
+  The Meta app and the dedicated Facebook Page now exist ([our Meta setup](../meta-graph-api.md#our-meta-setup)). Phase 0 complete.

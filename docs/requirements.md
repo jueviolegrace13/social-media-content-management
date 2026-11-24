@@ -84,7 +84,7 @@ that calls the platform's API (Open Play first).
 
 ### Security
 - Page tokens and other secrets encrypted at rest (AES-256-GCM) with key versioning; keys only in environment variables.
-- API keys stored hashed; requests signed and time-limited to block replays.
+- API client secrets stored encrypted (verifying a signature needs them, ADR-0007) and shown once; requests signed and time-limited to block replays.
 - Every tenant-owned query is scoped by tenant; automated tests check cross-tenant access is refused.
 - Super admin requires TOTP; sessions are httpOnly, Secure, SameSite cookies; sign-in is rate limited.
 - No secrets in logs; Meta tokens are redacted from error records.

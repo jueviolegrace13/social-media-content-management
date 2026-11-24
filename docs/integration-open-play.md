@@ -12,7 +12,8 @@ Open Play builds the content; the platform publishes it. Calls are server to ser
 
 ## Endpoints Open Play calls
 
-All under `/v1`, signed, JSON unless uploading.
+All under `/api/v1`, signed, JSON unless uploading. Signing details: [README](../README.md#calling-the-api-as-a-client-app)
+and `server/lib/signing.ts`. `GET /api/v1/whoami` (Phase 1) returns the client and its tenants, for checking the setup.
 
 | Call | Purpose | Notes |
 | --- | --- | --- |

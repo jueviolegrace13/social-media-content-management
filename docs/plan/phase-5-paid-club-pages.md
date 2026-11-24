@@ -14,7 +14,7 @@ Paying clubs connect their own Facebook Page and their Open Play posts publish t
 ## Tasks
 
 ### Meta (owner + social)
-- [ ] Business verification complete
+- [ ] Register the business (e.g. DTI sole proprietorship) and complete Meta business verification
 - [ ] App Review submission for `pages_manage_posts` and related permissions (screencast, privacy policy, data deletion endpoint)
 
 ### Connect flow (social, open-play)
@@ -40,3 +40,4 @@ Phase 4. App Review approval (outside our control on timing).
 ## Change log
 
 - 2026-11-24: Phase created.
+- 2026-11-24: Business registration and Meta business verification moved here from Phase 0 (no registered business yet).

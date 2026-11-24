@@ -47,7 +47,7 @@ No AI features in the first release. The design keeps room for them later.
 ### Meta constraints that shape the plan
 
 - Posting to **a Page we manage ourselves** works while the Meta app is in development mode, so phases 1 to 4 don't wait on App Review.
-- Posting to **other people's Pages** (paid tier) needs Facebook Login, `pages_manage_posts` with Advanced Access, App Review and business verification. Start verification early; it runs in parallel.
+- Posting to **other people's Pages** (paid tier) needs Facebook Login, `pages_manage_posts` with Advanced Access, App Review and business verification. Verification waits on registering the business (Phase 5).
 - **Tagging other Pages** needs the Page Mentioning feature, which needs App Review and business verification. Without it, tags are silently stripped. Until then, posts use the club's name and Page link in the caption ([findings](docs/meta-graph-api.md)).
 - **Instagram** only publishes from Business/Creator accounts linked to a Page, needs an image or video on every post, fetches media from a public URL, and caps publishing (about 50 posts per 24 hours).
 - Meta charges nothing for the API, App Review or verification.
@@ -56,7 +56,7 @@ No AI features in the first release. The design keeps room for them later.
 
 | | Phase | Outcome | Repo(s) |
 | --- | --- | --- | --- |
-| [ ] | [0. Spec and architecture](docs/plan/phase-0-spec-and-architecture.md) | Requirements, Meta findings, remaining decisions recorded (in review) | social |
+| [x] | [0. Spec and architecture](docs/plan/phase-0-spec-and-architecture.md) | Requirements, Meta findings, remaining decisions recorded | social |
 | [ ] | [1. Foundation](docs/plan/phase-1-foundation.md) | App skeleton, tenants, client API keys, super admin, encrypted secrets | social |
 | [ ] | [2. Publishing engine + dedicated Page](docs/plan/phase-2-publishing-engine.md) | Publish now or scheduled to a Facebook Page, with retries and history | social |
 | [ ] | [3. Daily "Today's Open Plays"](docs/plan/phase-3-daily-open-plays.md) | Open Play posts a daily roundup at 2:00 PM PH time | open-play, social |
