@@ -101,7 +101,8 @@ describe('connecting a Facebook Page', () => {
   it('needs a signed-in admin to start, and the app secret configured', async () => {
     expect((await adminClient().request('GET', `/accounts/facebook/connect?tenantId=${tenantId}`)).status).toBe(401)
     delete process.env.META_APP_SECRET
-    expect((await admin.request('GET', `/accounts/facebook/connect?tenantId=${tenantId}`)).status).toBe(503)
+    const res = await admin.request('GET', `/accounts/facebook/connect?tenantId=${tenantId}`)
+    expect(res.headers.get('location')).toBe('/admin/accounts?connect_error=not_configured')
   })
 })
 

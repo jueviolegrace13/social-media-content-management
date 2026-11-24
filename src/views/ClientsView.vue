@@ -21,15 +21,15 @@ const tenantName = computed(() => new Map((tenants.data.value?.tenants ?? []).ma
 const showCreate = ref(false)
 const form = ref({ name: '', scopes: [] as string[], tenantIds: [] as string[], webhookUrl: '' })
 
-/** A secret just created or rotated. Shown once, then gone from memory when the dialog closes. */
-const revealed = ref<{ client: ApiClient; secret: string } | null>(null)
+/** Secrets just created or rotated. Shown once, then gone from memory when the dialog closes. */
+const revealed = ref<{ client: ApiClient; secret?: string; webhookSecret?: string | null } | null>(null)
 const copied = ref(false)
 
 const refresh = () => queryClient.invalidateQueries({ queryKey: ['clients'] })
 
 const create = useMutation({
   mutationFn: () =>
-    adminApi<{ client: ApiClient; secret: string }>('POST', '/clients', {
+    adminApi<{ client: ApiClient; secret: string; webhookSecret: string | null }>('POST', '/clients', {
       name: form.value.name,
       scopes: form.value.scopes,
       tenantIds: form.value.tenantIds,
@@ -50,6 +50,28 @@ const rotate = useMutation({
     await refresh()
   },
 })
+
+// Webhook URL: setting one issues a new webhook signing secret, shown once.
+const webhookFor = ref<ApiClient | null>(null)
+const webhookUrl = ref('')
+function editWebhook(client: ApiClient) {
+  webhookFor.value = client
+  webhookUrl.value = client.webhookUrl ?? ''
+}
+const webhookSave = useMutation({
+  mutationFn: () =>
+    adminApi<{ client: ApiClient; webhookSecret: string | null }>('POST', `/clients/${webhookFor.value!.id}/webhook`, {
+      webhookUrl: webhookUrl.value || null,
+    }),
+  onSuccess: async (result) => {
+    webhookFor.value = null
+    if (result.webhookSecret) revealed.value = result
+    await refresh()
+  },
+})
+
+const webhookError = computed(() => webhookSave.error.value?.message ?? null)
+const webhookSaving = computed(() => webhookSave.isPending.value)
 
 const revoke = useMutation({
   mutationFn: (id: string) => adminApi('POST', `/clients/${id}/revoke`),
@@ -76,9 +98,8 @@ function confirmRevoke(client: ApiClient) {
   })
 }
 
-async function copySecret() {
-  if (!revealed.value) return
-  await navigator.clipboard.writeText(revealed.value.secret)
+async function copySecret(value: string) {
+  await navigator.clipboard.writeText(value)
   copied.value = true
 }
 
@@ -122,6 +143,7 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : 'â€
     <Column header="">
       <template #body="{ data }">
         <div v-if="data.status === 'active'" class="flex gap-1">
+          <Button label="Webhook" size="small" text @click="editWebhook(data)" />
           <Button label="Rotate" size="small" text severity="warn" @click="confirmRotate(data)" />
           <Button label="Revoke" size="small" text severity="danger" @click="confirmRevoke(data)" />
         </div>
@@ -152,14 +174,36 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : 'â€
     </form>
   </Dialog>
 
-  <Dialog :visible="revealed !== null" header="Client secret" modal :closable="false" class="w-full max-w-lg">
+  <Dialog :visible="webhookFor !== null" header="Webhook URL" modal class="w-full max-w-md" @update:visible="(v: boolean) => !v && (webhookFor = null)">
+    <form class="flex flex-col gap-4" @submit.prevent="webhookSave.mutate()">
+      <p class="text-sm">Status webhooks (published, failed, ...) go here, signed with a webhook secret. Saving a URL issues a new secret; leave it empty to stop webhooks.</p>
+      <InputText v-model="webhookUrl" type="url" placeholder="https://..." />
+      <Message v-if="webhookError" severity="error" :closable="false">{{ webhookError }}</Message>
+      <Button type="submit" label="Save" :loading="webhookSaving" />
+    </form>
+  </Dialog>
+
+  <Dialog :visible="revealed !== null" header="Client secrets" modal :closable="false" class="w-full max-w-lg">
     <div v-if="revealed" class="flex flex-col gap-3">
-      <Message severity="warn" :closable="false">Copy this secret now. It won't be shown again.</Message>
+      <Message severity="warn" :closable="false">Copy these now. They won't be shown again.</Message>
       <div class="text-sm"><span class="font-medium">Client ID:</span> <code>{{ revealed.client.id }}</code></div>
-      <code class="block break-all rounded bg-surface-100 p-3 text-sm dark:bg-surface-800">{{ revealed.secret }}</code>
-      <div class="flex justify-end gap-2">
-        <Button :label="copied ? 'Copied' : 'Copy'" :icon="copied ? 'pi pi-check' : 'pi pi-copy'" severity="secondary" @click="copySecret" />
-        <Button label="I've saved it" @click="closeRevealed" />
+      <template v-if="revealed.secret">
+        <div class="text-sm font-medium">Client secret (signs requests to this API)</div>
+        <div class="flex items-start gap-2">
+          <code class="block flex-1 break-all rounded bg-surface-100 p-3 text-sm dark:bg-surface-800">{{ revealed.secret }}</code>
+          <Button icon="pi pi-copy" severity="secondary" text aria-label="Copy client secret" @click="copySecret(revealed.secret)" />
+        </div>
+      </template>
+      <template v-if="revealed.webhookSecret">
+        <div class="text-sm font-medium">Webhook secret (verifies webhooks from this API)</div>
+        <div class="flex items-start gap-2">
+          <code class="block flex-1 break-all rounded bg-surface-100 p-3 text-sm dark:bg-surface-800">{{ revealed.webhookSecret }}</code>
+          <Button icon="pi pi-copy" severity="secondary" text aria-label="Copy webhook secret" @click="copySecret(revealed.webhookSecret)" />
+        </div>
+      </template>
+      <div class="flex items-center justify-end gap-2">
+        <span v-if="copied" class="text-sm text-muted-color">Copied</span>
+        <Button label="I've saved them" @click="closeRevealed" />
       </div>
     </div>
   </Dialog>

@@ -152,6 +152,7 @@ const managedRoute = new Hono<AdminEnv>()
   .get('/accounts', async (c) => c.json({ accounts: (await listAllAccounts()).map(accountView) }))
   .get('/accounts/facebook/connect', zValidator('query', connectQuery, invalidInput), async (c) => {
     const { tenantId } = c.req.valid('query')
+    if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) return c.redirect('/admin/accounts?connect_error=not_configured')
     const { url, state } = await startLogin(c.get('admin').id, tenantId, redirectUri(c.req.url))
     setCookie(c, STATE_COOKIE, state, { httpOnly: true, secure: isHttps(c), sameSite: 'Lax', path: STATE_COOKIE_PATH, maxAge: LOGIN_TTL_MINUTES * 60 })
     return c.redirect(url)

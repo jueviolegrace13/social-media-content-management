@@ -6,6 +6,9 @@
  * TOTP secret. Encryption uses a throwaway key unless ENCRYPTION_KEYS is set.
  */
 import './lib/loadEnv.js'
+import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { serve } from '@hono/node-server'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
@@ -21,6 +24,7 @@ const { createAdmin } = await import('./services/admins.js')
 const { otpauthUri } = await import('./lib/totp.js')
 
 const dataDir = process.env.LOCAL_DB_DIR ?? './.local-db'
+const mediaDir = process.env.LOCAL_MEDIA_DIR ?? './.local-media'
 const client = new PGlite(dataDir)
 const db = drizzle(client, { schema })
 await migrate(db, { migrationsFolder: './drizzle' })
@@ -35,4 +39,23 @@ if (rows[0]!.n === 0) {
 }
 
 const port = Number(process.env.API_PORT ?? 3001)
-serve({ fetch: app.fetch, port }, () => console.log(`API on http://localhost:${port}/api (local database in ${dataDir})`))
+
+// Media goes to ./.local-media and is served below (unless R2 is configured). Meta can't fetch these URLs, so
+// local posts with images fail to publish; everything else works.
+if (!process.env.R2_BUCKET) {
+  const { LocalStorage, setStorage } = await import('./lib/storage.js')
+  setStorage(new LocalStorage(mediaDir, `http://localhost:${port}/api/local-media`))
+}
+
+async function serveLocalMedia(req: Request): Promise<Response> {
+  const key = decodeURIComponent(new URL(req.url).pathname.slice('/api/local-media/'.length))
+  const full = resolve(mediaDir, key)
+  if (!full.startsWith(resolve(mediaDir)) || !existsSync(full)) return new Response('Not found', { status: 404 })
+  const type = full.endsWith('.png') ? 'image/png' : 'image/jpeg'
+  return new Response(await readFile(full), { headers: { 'content-type': type } })
+}
+
+serve(
+  { fetch: (req) => (new URL(req.url).pathname.startsWith('/api/local-media/') ? serveLocalMedia(req) : app.fetch(req)), port },
+  () => console.log(`API on http://localhost:${port}/api (local database in ${dataDir})`),
+)
