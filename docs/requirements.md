@@ -31,7 +31,16 @@ that calls the platform's API (Open Play first).
 1. Upload JPEG, PNG or WebP images up to 8 MB through the API. The type is checked from the file's bytes, not its name.
 2. Images are re-encoded to strip metadata (location, camera data) before storage.
 3. Stored in object storage with a public, unguessable URL (Meta fetches media by URL).
-4. Media belongs to a tenant and can be reused across posts. Unused uploads are deleted after 7 days.
+4. Media belongs to a tenant and can be reused across posts while it's kept. Unused uploads (never attached to a post) are deleted after 7 days.
+5. Retention (free tier): storage is kept small by not holding post media forever. When a post reaches a final state
+   (every destination published, or failed with no retries left, cancelled or removed), its images stay available for
+   **4 hours** so the user can download them, then they are deleted from storage and the database. An image still used by
+   another post that hasn't finished is kept until that post finishes too.
+   - Facebook and Instagram keep their own copy once a post is published, so deleting ours doesn't affect the live post.
+   - Client apps show a download link and the time left before deletion.
+   - With the once-a-day run, deletion happens at the first daily run at least 4 hours after the post finished (so up
+     to about a day). It tightens to about 4 hours once [precise scheduling](plan/later-precise-scheduling.md) lands.
+   - Paid plans may keep media longer (media library, Phases 5 and 6).
 
 ### FR-4 Posts (Phase 2)
 1. A post has a caption, 0 to 10 images, one or more destinations (social accounts), and an optional schedule date.

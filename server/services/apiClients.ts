@@ -11,6 +11,7 @@ import { aadFor, decrypt, encrypt, type Encrypted } from '../lib/encryption.js'
  */
 
 export const secretAad = (clientId: string) => aadFor(null, 'api_clients.secret', clientId)
+export const webhookSecretAad = (clientId: string) => aadFor(null, 'api_clients.webhook_secret', clientId)
 
 function newSecret(): string {
   return randomBytes(32).toString('base64url')
@@ -27,6 +28,26 @@ function encryptedColumns(value: Encrypted) {
 
 export function storedSecret(row: typeof apiClients.$inferSelect): Encrypted {
   return { keyVersion: row.secretKeyVersion, iv: row.secretIv, ciphertext: row.secretCiphertext, tag: row.secretTag }
+}
+
+export function webhookColumns(value: Encrypted | null) {
+  return {
+    webhookSecretKeyVersion: value?.keyVersion ?? null,
+    webhookSecretIv: value?.iv ?? null,
+    webhookSecretCiphertext: value?.ciphertext ?? null,
+    webhookSecretTag: value?.tag ?? null,
+  }
+}
+
+export function storedWebhookSecret(row: typeof apiClients.$inferSelect): Encrypted | null {
+  if (row.webhookSecretKeyVersion === null || !row.webhookSecretIv || !row.webhookSecretCiphertext || !row.webhookSecretTag) return null
+  return { keyVersion: row.webhookSecretKeyVersion, iv: row.webhookSecretIv, ciphertext: row.webhookSecretCiphertext, tag: row.webhookSecretTag }
+}
+
+/** The decrypted webhook signing secret, or null when the client has none. Never log it. */
+export function webhookSecretOf(row: typeof apiClients.$inferSelect): string | null {
+  const stored = storedWebhookSecret(row)
+  return stored ? decrypt(stored, webhookSecretAad(row.id)) : null
 }
 
 export interface ApiClientView {
@@ -53,24 +74,42 @@ export async function createApiClient(input: {
   scopes: string[]
   tenantIds: string[]
   webhookUrl?: string | null
-}): Promise<{ client: ApiClientView; secret: string }> {
+}): Promise<{ client: ApiClientView; secret: string; webhookSecret: string | null }> {
   const db = getDb()
   await assertTenantsExist(input.tenantIds)
   const [existing] = await db.select({ id: apiClients.id }).from(apiClients).where(eq(apiClients.name, input.name))
   if (existing) throw conflict('A client with that name already exists')
   const id = randomUUID()
   const secret = newSecret()
+  // A webhook URL comes with its own signing secret, shown once with the client secret.
+  const webhookSecret = input.webhookUrl ? newSecret() : null
   await db.insert(apiClients).values({
     id,
     name: input.name,
     scopes: input.scopes,
     webhookUrl: input.webhookUrl ?? null,
     ...encryptedColumns(encrypt(secret, secretAad(id))),
+    ...webhookColumns(webhookSecret ? encrypt(webhookSecret, webhookSecretAad(id)) : null),
   })
   if (input.tenantIds.length > 0) {
     await db.insert(apiClientTenants).values([...new Set(input.tenantIds)].map((tenantId) => ({ clientId: id, tenantId })))
   }
-  return { client: (await getApiClient(id))!, secret }
+  return { client: (await getApiClient(id))!, secret, webhookSecret }
+}
+
+/**
+ * Sets or clears the client's webhook URL. Setting one issues a new webhook secret (returned once); clearing it
+ * deletes the secret.
+ */
+export async function setApiClientWebhook(id: string, webhookUrl: string | null): Promise<{ client: ApiClientView; webhookSecret: string | null }> {
+  const webhookSecret = webhookUrl ? newSecret() : null
+  const updated = await getDb()
+    .update(apiClients)
+    .set({ webhookUrl, ...webhookColumns(webhookSecret ? encrypt(webhookSecret, webhookSecretAad(id)) : null) })
+    .where(and(eq(apiClients.id, id), eq(apiClients.status, 'active')))
+    .returning({ id: apiClients.id })
+  if (updated.length === 0) throw notFound('Active API client')
+  return { client: (await getApiClient(id))!, webhookSecret }
 }
 
 export async function rotateApiClientSecret(id: string): Promise<{ client: ApiClientView; secret: string }> {

@@ -10,6 +10,8 @@ const queryClient = useQueryClient()
 
 const links = [
   { to: { name: 'tenants' }, label: 'Tenants', icon: 'pi pi-building' },
+  { to: { name: 'accounts' }, label: 'Accounts', icon: 'pi pi-share-alt' },
+  { to: { name: 'posts' }, label: 'Posts', icon: 'pi pi-send' },
   { to: { name: 'clients' }, label: 'API clients', icon: 'pi pi-key' },
   { to: { name: 'audit' }, label: 'Audit log', icon: 'pi pi-list' },
 ]

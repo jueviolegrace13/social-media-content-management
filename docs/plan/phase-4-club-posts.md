@@ -23,6 +23,7 @@ Club owners create posts about their leaderboard, top players and extra details 
 
 ### Status and safeguards (open-play)
 - [ ] Owner sees scheduled, published and failed posts, with the post link
+- [ ] Post status: "Download photos" with the time left before they're deleted (free tier, FR-3.5)
 - [ ] Per club limit (for example, posts per week) set by super admin, to keep the dedicated Page from being flooded
 - [ ] Super admin can take down a published post from the dedicated Page if needed
 
@@ -45,3 +46,4 @@ Phases 2 and 3 (super admin area, club Page field).
 - 2026-11-24: Phase created.
 - 2026-11-24: No super admin approval: free clubs post straight to the dedicated Page. Added per club limit and super admin takedown as safeguards. Text + owner photos only.
 - 2026-11-24: Scheduling is by date in the daily run until precise scheduling lands.
+- 2026-11-25: Free tier media retention: photos are deleted about 4 hours after a post finishes, so the post status offers a download first.
