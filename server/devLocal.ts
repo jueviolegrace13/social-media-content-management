@@ -5,7 +5,7 @@
  * The first run creates a local-only admin, dev@localhost.test with password `local-dev-password`, and prints its
  * TOTP secret. Encryption uses a throwaway key unless ENCRYPTION_KEYS is set.
  */
-import 'dotenv/config'
+import './lib/loadEnv.js'
 import { serve } from '@hono/node-server'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'

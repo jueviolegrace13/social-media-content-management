@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import '../server/lib/loadEnv.js'
 import { audit } from '../server/services/audit.js'
 import { reencryptAll } from '../server/services/reencrypt.js'
 

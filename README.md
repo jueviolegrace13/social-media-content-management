@@ -17,13 +17,13 @@ npm run dev:local   # API on an in-process Postgres stored in ./.local-db, no Ne
 Open http://localhost:5174/admin. The first run creates a local-only admin (`dev@localhost.test` / `local-dev-password`)
 and prints its TOTP secret in the terminal; add it to an authenticator app to sign in.
 
-Against a Neon dev branch instead: copy `.env.example` to `.env`, fill it in, then `npm run db:migrate` and `npm run dev`.
+Against a Neon dev branch instead: copy `.env.example` to `.env.local` (or `.env`; `.env.local` wins), fill it in, then `npm run db:migrate` and `npm run dev`.
 
 ## Scripts
 
 | Script | What it does |
 | --- | --- |
-| `npm run dev` / `dev:local` | Vite + API (Neon from `.env` / local PGlite) |
+| `npm run dev` / `dev:local` | Vite + API (Neon from `.env.local`/`.env` / local PGlite) |
 | `npm run typecheck` | `vue-tsc` over the app, server, scripts and tests |
 | `npm test` | Vitest; API tests run against a fresh PGlite with the real migrations |
 | `npm run db:generate` | New migration from `server/db/schema.ts` |

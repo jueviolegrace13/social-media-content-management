@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import './lib/loadEnv.js'
 import { serve } from '@hono/node-server'
 import { app } from './app.js'
 

@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import '../server/lib/loadEnv.js'
 import { stdin, stdout } from 'node:process'
 import { createInterface } from 'node:readline/promises'
 import { audit } from '../server/services/audit.js'
