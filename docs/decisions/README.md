@@ -15,3 +15,4 @@ To change a decision, add a new ADR that supersedes the old one and set the old 
 | [0008](0008-secret-encryption.md) | AES-256-GCM with a versioned key ring | Accepted |
 | [0009](0009-super-admin.md) | Separate super admins per app, with TOTP | Accepted |
 | [0010](0010-idempotency-and-retries.md) | Idempotency keys, error classes and retries | Accepted |
+| [0011](0011-neon-ai-gateway-spike.md) | Neon AI Gateway as the future model access path (spike) | Proposed |

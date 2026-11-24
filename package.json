@@ -15,16 +15,21 @@
     "db:migrate": "drizzle-kit migrate",
     "admin:create": "tsx scripts/create-admin.ts",
     "keys:generate": "tsx scripts/generate-key.ts",
-    "secrets:reencrypt": "tsx scripts/reencrypt.ts"
+    "secrets:reencrypt": "tsx scripts/reencrypt.ts",
+    "ai:smoke": "tsx scripts/ai-gateway-smoke.ts"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.1",
+    "@neon/ai-sdk-provider": "^1.6.0",
+    "@neon/config": "^1.14.6",
+    "@neon/env": "^2.1.9",
     "@neondatabase/serverless": "^1.2.0",
     "@primeuix/themes": "^2.0.3",
     "@tanstack/vue-query": "^5.107.1",
+    "ai": "^7.0.181",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.18",
     "pinia": "^4.1.0",
