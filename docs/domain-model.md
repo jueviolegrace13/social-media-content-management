@@ -65,7 +65,7 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | --- | --- | --- |
 | id, tenant_id | uuid | |
 | caption | text | |
-| status | enum `draft`, `scheduled`, `publishing`, `published`, `partially_published`, `failed`, `cancelled` | rolled up from targets |
+| status | enum `draft`, `scheduled`, `publishing`, `published`, `partially_published`, `failed`, `cancelled`, `removed` | rolled up from targets |
 | scheduled_for | timestamptz null | null = post now |
 | source | text | e.g. `open_play.roundup`, `open_play.club_post`, `web` |
 | source_ref | text null | e.g. Open Play club ID or draft ID |
@@ -73,16 +73,16 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | created_at, updated_at | timestamptz | |
 
 ### post_media
-`post_id`, `media_asset_id`, `position` (0 to 9). Primary key (`post_id`, `position`).
+`post_id`, `tenant_id`, `media_asset_id`, `position` (0 to 9). Primary key (`post_id`, `position`).
 
 ### post_targets
 | column | type | notes |
 | --- | --- | --- |
 | id, tenant_id, post_id, social_account_id | uuid | unique (`post_id`, `social_account_id`) |
-| status | enum `pending`, `publishing`, `published`, `failed`, `cancelled` | |
+| status | enum `pending`, `publishing`, `published`, `failed`, `cancelled`, `removed` | `removed` = taken down |
 | external_post_id | text null | Meta post ID |
 | permalink | text null | |
-| published_at | timestamptz null | |
+| published_at, removed_at | timestamptz null | |
 | error_code, error_message | text null | last permanent error, readable |
 | dedupe_marker | text | used to detect unknown-outcome publishes (ADR-0010) |
 
@@ -94,18 +94,23 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | run_at | timestamptz | indexed with `status` |
 | attempts | smallint | |
 | locked_until | timestamptz null | ADR-0005 |
+| check_before_publish | boolean | set after an unknown outcome or a dead run (ADR-0010) |
 
 ### publish_attempts
 `id`, `tenant_id`, `post_target_id`, `started_at`, `finished_at`, `outcome` (`success`, `transient_error`, `permanent_error`, `unknown`),
-`http_status`, `meta_error_code`, `meta_error_subcode`, `message` (tokens redacted).
+`http_status`, `meta_error_code`, `meta_error_subcode`, `message` (tokens redacted), `external_post_id`.
 
 ### api_clients and api_client_tenants
 `api_clients`: `id`, `name` (unique), `secret_ciphertext/iv/tag/key_version`, `webhook_url`, `scopes` (text[]), `status` (`active`, `revoked`), `created_at`, `rotated_at`, `revoked_at`, `last_used_at`.
-`webhook_secret_*` is added in Phase 2 with the first webhook.
+`webhook_secret_key_version/iv/ciphertext/tag` (Phase 2): signs status webhooks; issued with the webhook URL.
 `api_client_tenants`: (`client_id`, `tenant_id`) primary key.
 
 ### webhook_deliveries
-`id` (= `event_id`), `client_id`, `tenant_id`, `type` (`post.published`, `post.failed`, ...), `payload` jsonb, `status`, `attempts`, `next_attempt_at`, `last_response_status`.
+`id` (= `event_id`), `client_id`, `tenant_id`, `type` (`post.published`, `post.failed`, ...), `payload` jsonb, `status` (`pending`, `delivered`, `failed`), `attempts`, `next_attempt_at`, `last_response_status`, `last_error`, `created_at`, `delivered_at`.
+
+### oauth_states (Phase 2)
+A Facebook Login in progress: `id`, `state_hash` (SHA-256 of the state), `admin_id`, `tenant_id`, encrypted long-lived
+user token (after the callback), `pages` jsonb (ID, name, picture, can publish; no tokens), `expires_at` (15 minutes).
 
 ### idempotency_keys
 (`client_id`, `key`) primary key, `request_hash`, `response_status`, `response_body` jsonb, `created_at` (expire after 7 days).
@@ -123,11 +128,13 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 
 ## Later phases (not in the first migration)
 
-- Phase 5: `plans`, `subscriptions`, `tenant_users` (club owners signing in through the connect flow), `oauth_states`.
+- Phase 5: `plans`, `subscriptions`, `tenant_users` (club owners signing in through the connect flow). `oauth_states` came early, in Phase 2.
 - Phase 6: `users` and `tenant_members` for direct sign-up, `media_folders`, caption templates for the web app.
 
 ## Status rules
 
-- A post is `published` when all targets are published, `partially_published` when some are, `failed` when all failed.
-- Cancel is allowed while every target is `pending`.
+- Cancelled and removed targets are left out. Of the rest: any `publishing` → `publishing`; any `pending` → `scheduled`
+  if the post has a date, else `publishing`; all published → `published`; none → `failed`; some → `partially_published`.
+  All cancelled → `cancelled`; all removed (or removed and cancelled) → `removed`.
+- Cancel and reschedule are allowed while every target is `pending` and no job is running.
 - Deleting a tenant is a soft delete (`suspended`) first; hard delete removes tokens immediately and the rest after 30 days.

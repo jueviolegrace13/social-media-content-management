@@ -23,6 +23,7 @@ and `server/lib/signing.ts`. `GET /api/v1/whoami` (Phase 1) returns the client a
 | `GET /v1/posts?source_ref=...&status=...` | List posts | For club post history in Open Play |
 | `GET /v1/posts/:id` | One post with per-destination status | |
 | `POST /v1/posts/:id/cancel` | Cancel before publishing starts | |
+| `POST /v1/posts/:id/reschedule` | Change `scheduled_for` before publishing starts | Body `{ "scheduled_for": "<iso>" \| null }` |
 | `DELETE /v1/posts/:id/targets/:targetId` | Take a published post down from a destination | Super admin takedown (FR-9.5) |
 
 ### Create post body
@@ -39,6 +40,8 @@ and `server/lib/signing.ts`. `GET /api/v1/whoami` (Phase 1) returns the client a
 ```
 
 - `scheduled_for: null` publishes now. A date publishes in the daily 2:00 PM PH run on or after it.
+- `tenant_id` may be left out while the client acts for one tenant only (Open Play's case).
+- Images: send at most 4.5 MB per upload (Vercel's request limit), even though the API accepts 8 MB.
 - Response `201` with the post, its targets and statuses. Replays with the same `Idempotency-Key` return the same post.
 
 ### Idempotency keys Open Play uses
@@ -51,7 +54,9 @@ and `server/lib/signing.ts`. `GET /api/v1/whoami` (Phase 1) returns the client a
 
 ## Webhooks Open Play receives
 
-`POST <open play>/api/integrations/social/webhook`, signed with the webhook secret.
+`POST <open play>/api/integrations/social/webhook`, signed with the webhook secret: headers `X-Event-Id`,
+`X-Timestamp`, `X-Nonce`, `X-Signature`, same scheme as client requests with PATH = `/api/integrations/social/webhook`
+(see the README, "Status webhooks"). The webhook secret is shown once in the admin UI when the URL is set.
 
 ```json
 {
