@@ -1,6 +1,6 @@
 # Phase 1: Foundation
 
-**Status:** In progress. Code done on branch `feat/phase-1-foundation` (2026-11-25); waiting on the Vercel deploy
+**Status:** Complete (2026-11-25)
 
 ## Goal
 
@@ -38,7 +38,7 @@ A deployable, tested skeleton of the social app with tenants, client app credent
 
 ## Acceptance criteria
 
-- [ ] Deployed to Vercel with CI green. *(needs rendee: Vercel project, Neon database, env vars)*
+- [x] Deployed to Vercel with CI green.
 - [x] An Open Play API client can authenticate and call a health/whoami endpoint for its tenant; a bad or replayed request is refused.
 - [x] Super admin can sign in with TOTP and manage tenants and API keys.
 - [x] Tenant isolation tests pass.
@@ -54,3 +54,5 @@ Phase 0 decisions on service auth, encryption and super admin.
   tenant scoping, rate limits, super admin sign-in and admin UI, audit log, security headers, CI. Added `admin_sessions`
   and `rate_limits` tables (see [domain model](../domain-model.md)); webhook secrets wait for Phase 2. Encrypted values
   are stored as base64 text rather than bytea so both database drivers read them the same way.
+- 2026-11-25: Deployed to https://social-media-content-management.vercel.app on Vercel Hobby with Neon project
+  `patient-sky-34315262` (`main` branch = production). GitHub auto-deploys from `main`. Phase 1 complete.

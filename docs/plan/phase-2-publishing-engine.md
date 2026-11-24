@@ -1,6 +1,6 @@
 # Phase 2: Publishing engine + dedicated Page
 
-**Status:** Not started
+**Status:** In progress
 
 ## Goal
 

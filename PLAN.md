@@ -57,7 +57,7 @@ No AI features in the first release. The design keeps room for them later.
 | | Phase | Outcome | Repo(s) |
 | --- | --- | --- | --- |
 | [x] | [0. Spec and architecture](docs/plan/phase-0-spec-and-architecture.md) | Requirements, Meta findings, remaining decisions recorded | social |
-| [ ] | [1. Foundation](docs/plan/phase-1-foundation.md) | App skeleton, tenants, client API keys, super admin, encrypted secrets | social |
+| [x] | [1. Foundation](docs/plan/phase-1-foundation.md) | App skeleton, tenants, client API keys, super admin, encrypted secrets | social |
 | [ ] | [2. Publishing engine + dedicated Page](docs/plan/phase-2-publishing-engine.md) | Publish now or scheduled to a Facebook Page, with retries and history | social |
 | [ ] | [3. Daily "Today's Open Plays"](docs/plan/phase-3-daily-open-plays.md) | Open Play posts a daily roundup at 2:00 PM PH time | open-play, social |
 | [ ] | [4. Club leaderboard posts](docs/plan/phase-4-club-posts.md) | Club owners compose leaderboard posts in Open Play for the dedicated Page | open-play, social |
