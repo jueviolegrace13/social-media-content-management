@@ -30,10 +30,13 @@ Publish posts to a Facebook Page immediately or at a scheduled time, reliably, w
 - [x] Status flow: draft, scheduled, publishing, published, failed, cancelled
 - [x] Signed status webhooks to the API client (published, failed) with retries
 - [x] Cancel or reschedule before publishing starts
+- [ ] Media retention: mark post media for deletion 4 hours after the post reaches a final state; delete from storage and DB in the daily run (FR-3.5)
+- [ ] API: download URL and `expires_at` on post and media responses, so client apps can offer a download before deletion
 
 ### History and admin (social)
 - [x] `GET /v1/posts` and `/v1/posts/:id` with per-destination status, Meta post ID and link, error detail
 - [x] Admin screen: recent posts, failures, retry button
+- [ ] Admin Posts screen: show media expiry and a download link
 
 ### Owner steps (rendee)
 - [ ] Add the OAuth redirect URI in the Meta app; add `META_APP_SECRET` and `APP_ORIGIN` in Vercel (README, "Facebook Page connection")
@@ -79,3 +82,5 @@ Phase 1. Meta app and dedicated Page created (Phase 0 owner steps).
     Phase 5) now. `META_LOGIN_CONFIG_ID` switches to a Facebook Login for Business configuration if needed.
   - **Webhook secrets:** issued when a client gets a webhook URL (on creation or via the admin UI), shown once.
   - `appsecret_proof` is sent with every token-carrying Graph call when `META_APP_SECRET` is set.
+- 2026-11-25: Added free tier media retention (FR-3.5): post images are kept 4 hours after the post finishes so users can
+  download them, then deleted in the daily run. Facebook and Instagram keep their own copy.

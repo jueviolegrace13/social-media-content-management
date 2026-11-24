@@ -12,6 +12,8 @@ We're on free tiers. Vercel Hobby crons run at most once a day and may fire anyw
 Until this is done, the publishing engine runs once a day (2:00 PM PH, 06:00 UTC):
 - "Post now" publishes immediately, so it doesn't need the cron.
 - A scheduled post publishes in the first daily run at or after its chosen time. The composer should say so.
+- Media retention (FR-3.5) deletes post images in the first daily run at least 4 hours after the post finishes, so up
+  to about a day. A frequent trigger brings that close to 4 hours.
 
 ## Options to decide between
 

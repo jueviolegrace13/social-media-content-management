@@ -58,6 +58,7 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | width, height, size_bytes | integer | |
 | sha256 | text | dedupe within a tenant |
 | attached_at | timestamptz null | null = unused; deleted after 7 days |
+| delete_after | timestamptz null | set to final time + 4 hours when the last post using it reaches a final state; cleared if attached to a new post (FR-3.5) |
 | created_by_client_id | uuid null | |
 
 ### posts
@@ -137,4 +138,8 @@ user token (after the callback), `pages` jsonb (ID, name, picture, can publish; 
   if the post has a date, else `publishing`; all published → `published`; none → `failed`; some → `partially_published`.
   All cancelled → `cancelled`; all removed (or removed and cancelled) → `removed`.
 - Cancel and reschedule are allowed while every target is `pending` and no job is running.
+- Media retention (free tier): when a post reaches a final state (`published`, `partially_published`, `failed` with no
+  retries left, `cancelled`, `removed`), each of its media assets not used by an unfinished post gets
+  `delete_after = now() + 4 hours`. The daily run deletes assets past `delete_after` from storage, then the row.
+  A post whose media was deleted keeps its history; its media links show as expired.
 - Deleting a tenant is a soft delete (`suspended`) first; hard delete removes tokens immediately and the rest after 30 days.
