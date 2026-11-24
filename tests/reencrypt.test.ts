@@ -30,8 +30,8 @@ describe('key rotation', () => {
     const { totpSecret } = await createAdmin('root@example.com', ADMIN_PASSWORD)
 
     process.env.ENCRYPTION_KEYS = `v2:${v2},v1:${v1}`
-    expect(await reencryptAll()).toEqual({ apiClients: 1, adminUsers: 1 })
-    expect(await reencryptAll()).toEqual({ apiClients: 0, adminUsers: 0 })
+    expect(await reencryptAll()).toEqual({ apiClients: 1, adminUsers: 1, socialAccounts: 0 })
+    expect(await reencryptAll()).toEqual({ apiClients: 0, adminUsers: 0, socialAccounts: 0 })
     expect((await db.select().from(apiClients))[0]!.secretKeyVersion).toBe(2)
 
     process.env.ENCRYPTION_KEYS = `v2:${v2}`

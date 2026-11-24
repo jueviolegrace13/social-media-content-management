@@ -10,9 +10,14 @@ import type { Db } from './client.js'
 
 type TenantTable = PgTable & { tenantId: PgColumn }
 
+export interface SelectOptions {
+  orderBy?: (SQL | PgColumn)[]
+  limit?: number
+}
+
 export interface TenantScope {
   readonly tenantId: string
-  select<T extends TenantTable>(table: T, where?: SQL): Promise<T['$inferSelect'][]>
+  select<T extends TenantTable>(table: T, where?: SQL, opts?: SelectOptions): Promise<T['$inferSelect'][]>
   insert<T extends TenantTable>(table: T, values: Omit<T['$inferInsert'], 'tenantId'>): Promise<T['$inferSelect'][]>
   update<T extends TenantTable>(table: T, set: PgUpdateSetSource<T>, where?: SQL): Promise<T['$inferSelect'][]>
   delete<T extends TenantTable>(table: T, where?: SQL): Promise<T['$inferSelect'][]>
@@ -24,14 +29,25 @@ export function forTenant(db: Db, tenantId: string): TenantScope {
   // Drizzle's builder generics don't follow a generic table parameter, so the builders are typed loosely here
   // and the public signatures above carry the real types.
   const loose = db as unknown as {
-    select: () => { from: (t: PgTable) => { where: (w: SQL | undefined) => Promise<unknown[]> } }
+    select: () => {
+      from: (t: PgTable) => {
+        where: (w: SQL | undefined) => Promise<unknown[]> & {
+          orderBy: (...o: (SQL | PgColumn)[]) => Promise<unknown[]> & { limit: (n: number) => Promise<unknown[]> }
+          limit: (n: number) => Promise<unknown[]>
+        }
+      }
+    }
     insert: (t: PgTable) => { values: (v: unknown) => { returning: () => Promise<unknown[]> } }
     update: (t: PgTable) => { set: (s: unknown) => { where: (w: SQL | undefined) => { returning: () => Promise<unknown[]> } } }
     delete: (t: PgTable) => { where: (w: SQL | undefined) => { returning: () => Promise<unknown[]> } }
   }
   return {
     tenantId,
-    select: (table, where) => loose.select().from(table).where(scoped(table, where)) as never,
+    select: (table, where, opts) => {
+      const q = loose.select().from(table).where(scoped(table, where))
+      const ordered = opts?.orderBy?.length ? q.orderBy(...opts.orderBy) : q
+      return (opts?.limit ? ordered.limit(opts.limit) : ordered) as never
+    },
     insert: (table, values) => loose.insert(table).values({ ...values, tenantId }).returning() as never,
     update: (table, set, where) => {
       // The tenant of a row never changes through a scope.

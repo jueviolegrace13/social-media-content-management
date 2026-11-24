@@ -46,7 +46,7 @@ export function signedRequest(
   opts: SignOptions = {},
 ): Promise<Response> {
   const fullPath = `/api${path}`
-  const raw = body === undefined ? '' : JSON.stringify(body)
+  const raw = body === undefined ? '' : body instanceof Uint8Array ? body : JSON.stringify(body)
   const timestamp = opts.timestamp ?? String(Math.floor(Date.now() / 1000))
   const nonce = opts.nonce ?? newNonce()
   const signature = opts.signature ?? sign(client.secret, method, fullPath, timestamp, nonce, raw)
@@ -58,10 +58,10 @@ export function signedRequest(
         'x-timestamp': timestamp,
         'x-nonce': nonce,
         'x-signature': signature,
-        ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
+        ...(body !== undefined ? { 'content-type': body instanceof Uint8Array ? 'image/jpeg' : 'application/json' } : {}),
         ...opts.headers,
       },
-      body: body === undefined ? undefined : raw,
+      body: body === undefined ? undefined : (raw as BodyInit),
     }),
   )
 }
