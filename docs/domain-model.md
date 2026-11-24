@@ -52,7 +52,7 @@ AdminUser    AuditLog    IdempotencyKey    RequestNonce
 | column | type | notes |
 | --- | --- | --- |
 | id, tenant_id | uuid | |
-| storage_key | text unique | R2 object key (ADR-0006) |
+| storage_key | text unique | Blob pathname (ADR-0006) |
 | public_url | text | |
 | content_type | text | after re-encode |
 | width, height, size_bytes | integer | |

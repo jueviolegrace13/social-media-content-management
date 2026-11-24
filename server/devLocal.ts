@@ -40,9 +40,9 @@ if (rows[0]!.n === 0) {
 
 const port = Number(process.env.API_PORT ?? 3001)
 
-// Media goes to ./.local-media and is served below (unless R2 is configured). Meta can't fetch these URLs, so
+// Media goes to ./.local-media and is served below (unless Vercel Blob is configured). Meta can't fetch these URLs, so
 // local posts with images fail to publish; everything else works.
-if (!process.env.R2_BUCKET) {
+if (!process.env.BLOB_READ_WRITE_TOKEN) {
   const { LocalStorage, setStorage } = await import('./lib/storage.js')
   setStorage(new LocalStorage(mediaDir, `http://localhost:${port}/api/local-media`))
 }

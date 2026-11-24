@@ -39,8 +39,7 @@ export async function uploadMedia(scope: TenantScope, clientId: string, key: str
   const id = randomUUID()
   const storageKey = `t/${scope.tenantId}/${randomUUID()}.${image.extension}`
   const storage = getStorage()
-  await storage.put(storageKey, image.bytes, image.contentType)
-  const publicUrl = storage.publicUrl(storageKey)
+  const publicUrl = await storage.put(storageKey, image.bytes, image.contentType)
   const body = {
     id,
     url: publicUrl,

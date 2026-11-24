@@ -1,7 +1,7 @@
 # Phase 2: Publishing engine + dedicated Page
 
 **Status:** In progress. Code done on branch `feat/phase-2-publishing-engine` (2026-11-25); waiting on Meta app secret,
-redirect URI and R2 setup to publish for real
+redirect URI and Blob store setup to publish for real
 
 ## Goal
 
@@ -40,7 +40,7 @@ Publish posts to a Facebook Page immediately or at a scheduled time, reliably, w
 
 ### Owner steps (rendee)
 - [ ] Add the OAuth redirect URI in the Meta app; add `META_APP_SECRET` and `APP_ORIGIN` in Vercel (README, "Facebook Page connection")
-- [ ] Create the Cloudflare R2 bucket and add the five `R2_*` variables in Vercel (README, "Media storage")
+- [ ] Create a Vercel Blob store and connect it to the project (README, "Media storage"); the token is added automatically
 - [ ] Connect the dedicated Page in the admin UI and publish a text and a photo post, now and scheduled
 
 ## Acceptance criteria
@@ -84,3 +84,5 @@ Phase 1. Meta app and dedicated Page created (Phase 0 owner steps).
   - `appsecret_proof` is sent with every token-carrying Graph call when `META_APP_SECRET` is set.
 - 2026-11-25: Added free tier media retention (FR-3.5): post images are kept 4 hours after the post finishes so users can
   download them, then deleted in the daily run. Facebook and Instagram keep their own copy.
+- 2026-11-25: Media storage moved from Cloudflare R2 to Vercel Blob (ADR-0006 accepted): one platform, no storage
+  secrets to copy, native direct uploads if the 4.5 MB limit bites. `aws4fetch` removed; the R2 notes above are history.

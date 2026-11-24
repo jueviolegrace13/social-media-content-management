@@ -111,7 +111,7 @@ minute. Later retries wait for the next daily run.
 ## Deploying
 
 Vercel project with this repo, a Neon database, and these environment variables: `DATABASE_URL`, `ENCRYPTION_KEYS`,
-`CRON_SECRET`, `APP_ORIGIN`, `META_APP_ID`, `META_APP_SECRET`, and the five `R2_*` variables (see `.env.example`). The build runs migrations first
+`CRON_SECRET`, `APP_ORIGIN`, `META_APP_ID`, `META_APP_SECRET`, and `BLOB_READ_WRITE_TOKEN` (added by connecting a Blob store; see `.env.example`). The build runs migrations first
 (`vercel-build`). Then create the first admin by running `npm run admin:create` locally with the production `DATABASE_URL` and the
 same `ENCRYPTION_KEYS` as production in your shell (the TOTP secret is encrypted with them).
 
@@ -128,11 +128,9 @@ same `ENCRYPTION_KEYS` as production in your shell (the TOTP secret is encrypted
 4. In the admin UI: Accounts → Connect a Facebook Page → pick the tenant → sign in with the Facebook account that
    administers the dedicated Page → choose the Page.
 
-### Media storage (Cloudflare R2)
+### Media storage (Vercel Blob)
 
-1. Cloudflare dashboard → R2 → create a bucket (e.g. `smcm-media`).
-2. Bucket → Settings → Public access: enable the `r2.dev` subdomain (or connect a custom domain). That URL is
-   `R2_PUBLIC_BASE_URL`; Meta downloads post images from it.
-3. R2 → Manage API tokens → create a token with **Object Read & Write** on that bucket only. Note the Access Key ID
-   and Secret Access Key, and your Cloudflare Account ID.
-4. Add to Vercel: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL`.
+1. Vercel → Project → Storage → Create → **Blob**, then connect it to this project (Production and Preview).
+2. Vercel adds `BLOB_READ_WRITE_TOKEN` to the project automatically. Redeploy so the app picks it up.
+3. Meta downloads post images from the store's public URLs; no other setup is needed.
+   For `npm run dev`, `vercel env pull` brings the token into `.env.local`. `dev:local` stores files on disk instead.

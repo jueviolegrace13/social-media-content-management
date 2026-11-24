@@ -38,7 +38,7 @@ No AI features in the first release. The design keeps room for them later.
 | Content is assembled by the source app | Open Play owns open play data and templates; the platform owns publishing | [ADR-0003](docs/decisions/0003-source-app-assembles-content.md) |
 | Same stack as Open Play | Vue 3 + Vite + TS, Hono on Vercel, Neon Postgres + Drizzle | [ADR-0004](docs/decisions/0004-tech-stack.md) |
 | Jobs on free hosting | Postgres job table, daily cron, "post now" runs inline | [ADR-0005](docs/decisions/0005-background-jobs.md) |
-| Media storage | Cloudflare R2 (free egress, public URLs for Meta) | [ADR-0006](docs/decisions/0006-media-storage.md) |
+| Media storage | Vercel Blob (one platform, public URLs for Meta) | [ADR-0006](docs/decisions/0006-media-storage.md) |
 | App-to-app auth | HMAC-signed requests and webhooks | [ADR-0007](docs/decisions/0007-service-auth.md) |
 | Token encryption | AES-256-GCM, versioned key ring | [ADR-0008](docs/decisions/0008-secret-encryption.md) |
 | Super admins | Separate per app, TOTP required | [ADR-0009](docs/decisions/0009-super-admin.md) |
