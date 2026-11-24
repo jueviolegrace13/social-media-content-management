@@ -57,11 +57,11 @@ const authRoute = new Hono()
     const admin = await verifyAdminCredentials(email, password, code)
     if (!admin) {
       await bump('adminSignInEmail', emailKey)
-      await audit({ actorType: 'system', action: 'admin.sign_in_failed', details: { email: emailKey }, ip })
+      await audit({ actorType: 'system', action: 'admin.sign_in_failed', details: { email: emailKey }, ip: clientIp(c) })
       throw unauthorized('Email, password or code is incorrect')
     }
     setAdminCookie(c, await createAdminSession(admin.id))
-    await audit({ actorType: 'admin', actorId: admin.id, action: 'admin.signed_in', ip })
+    await audit({ actorType: 'admin', actorId: admin.id, action: 'admin.signed_in', ip: clientIp(c) })
     return c.json({ admin })
   })
   .post('/sign-out', async (c) => {

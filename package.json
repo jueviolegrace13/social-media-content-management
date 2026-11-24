@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"vite\" \"tsx watch server/dev.ts\"",
+    "dev:local": "concurrently -k -n web,api -c cyan,magenta \"vite\" \"tsx server/devLocal.ts\"",
     "build": "vue-tsc --noEmit && vite build",
     "vercel-build": "drizzle-kit migrate && npm run build",
     "preview": "vite preview",
